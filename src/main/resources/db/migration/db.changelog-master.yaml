@@ -1,0 +1,3 @@
+databaseChangeLog:
+  - include:
+      file: db/migration/changeset/V0-create-tables.yaml

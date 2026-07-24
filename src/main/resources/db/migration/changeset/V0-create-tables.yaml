@@ -1,0 +1,141 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-tables
+      author: Nikita Gusev
+      changes:
+        - createTable:
+            tableName: account_credentials
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: phone_number
+                  type: varchar(32)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: password_hashed
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role
+                  type: varchar(16)
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: account
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: first_name
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_name
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: credentials_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    unique: true
+                    foreignKeyName: credentials_fk
+                    referencedTableName: account_credentials
+                    referencedColumnNames: id
+        - createTable:
+            tableName: card
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: account_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: account_fk
+                    referencedTableName: account
+                    referencedColumnNames: id
+              - column:
+                  name: card_number_encrypted
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: balance
+                  type: numeric(12, 2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: varchar(16)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: validity_period
+                  type: varchar(7)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_four_digits
+                  type: varchar(4)
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: card_block_request
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: card_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: request_to_card_fk
+                    referencedTableName: card
+                    referencedColumnNames: id
+              - column:
+                  name: account_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: request_to_account_fk
+                    referencedTableName: account
+                    referencedColumnNames: id
+              - column:
+                  name: status
+                  type: varchar(16)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
