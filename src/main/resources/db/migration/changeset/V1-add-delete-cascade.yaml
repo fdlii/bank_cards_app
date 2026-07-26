@@ -1,0 +1,52 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-cascade-delete
+      author: Nikita Gusev
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: card
+            constraintName: account_fk
+        - addForeignKeyConstraint:
+            baseTableName: card
+            baseColumnNames: account_id
+            referencedTableName: account
+            referencedColumnNames: id
+            constraintName: account_fk
+            onDelete: CASCADE
+            onUpdate: CASCADE
+
+        - dropForeignKeyConstraint:
+            baseTableName: card_block_request
+            constraintName: request_to_card_fk
+        - addForeignKeyConstraint:
+            baseTableName: card_block_request
+            baseColumnNames: card_id
+            referencedTableName: card
+            referencedColumnNames: id
+            constraintName: request_to_card_fk
+            onDelete: CASCADE
+            onUpdate: CASCADE
+
+        - dropForeignKeyConstraint:
+            baseTableName: card_block_request
+            constraintName: request_to_account_fk
+        - addForeignKeyConstraint:
+            baseTableName: card_block_request
+            baseColumnNames: account_id
+            referencedTableName: account
+            referencedColumnNames: id
+            constraintName: request_to_account_fk
+            onDelete: CASCADE
+            onUpdate: CASCADE
+
+        - dropForeignKeyConstraint:
+            baseTableName: account
+            constraintName: credentials_fk
+        - addForeignKeyConstraint:
+            baseTableName: account
+            baseColumnNames: credentials_id
+            referencedTableName: account_credentials
+            referencedColumnNames: id
+            constraintName: credentials_fk
+            onDelete: CASCADE
+            onUpdate: CASCADE

@@ -1,5 +1,6 @@
 package com.example.bankcards.entity;
 
+import com.example.bankcards.util.CardNumberConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,6 +21,7 @@ public class CardEntity {
     private AccountEntity account;
 
     @Column(name = "card_number_encrypted")
+    @Convert(converter = CardNumberConverter.class)
     private String cardNumberEncrypted;
 
     private double balance;

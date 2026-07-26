@@ -8,6 +8,9 @@
   - Включить Swagger UI.
 
 spring:
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
   datasource:
     url: jdbc:postgresql://localhost:5432/bankcards
     username: postgres
@@ -27,3 +30,6 @@ auth:
     secret: MySecureSecretKeyWhichICanUseOnlyAtDevelopmentModeNotInProduction
     expiration-ms: 1000
   admin-key: rnq-HcE-WRV-UhT
+
+encryption:
+  key: C3FW1dwZmr6zU1oGeQFt+H2sfwp8ix8m0M6M3yYWGhQ=

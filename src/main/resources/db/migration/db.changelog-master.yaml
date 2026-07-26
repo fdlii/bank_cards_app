@@ -1,3 +1,5 @@
 databaseChangeLog:
   - include:
       file: db/migration/changeset/V0-create-tables.yaml
+  - include:
+      file: db/migration/changeset/V1-add-delete-cascade.yaml
