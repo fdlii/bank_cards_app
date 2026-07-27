@@ -30,8 +30,12 @@ public class CardController {
 
     @GetMapping("/admin")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<CardResponseDTO>> getAllCards() {
-        return ResponseEntity.ok().body(cardMapper.toDTOList(cardService.getAllCards()));
+    public ResponseEntity<List<CardResponseDTO>> getAllCards(
+            @ModelAttribute FIO fio,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok().body(cardMapper.toDTOList(cardService.getAllCards(fio.getFirstName(), fio.getLastName(), page, size)));
     }
 
     @PostMapping("/admin")
@@ -81,8 +85,11 @@ public class CardController {
 
     @GetMapping("/user")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<List<CardResponseDTO>> getUserCards() {
-        return ResponseEntity.ok(cardMapper.toDTOList(cardService.getUserCards()));
+    public ResponseEntity<List<CardResponseDTO>> getUserCards(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(cardMapper.toDTOList(cardService.getUserCards(page, size)));
     }
 
     @GetMapping("/user/{number}")

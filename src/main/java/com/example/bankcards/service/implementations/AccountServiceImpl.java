@@ -12,6 +12,8 @@ import com.example.bankcards.service.interfaces.AccountService;
 import com.example.bankcards.security.JwtHandler;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
@@ -20,7 +22,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.nio.file.AccessDeniedException;
 import java.util.List;
@@ -46,13 +47,13 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     @Transactional
-    public long registerAccount(AccountCredentialsEntity accountCredentialsEntity, String adminKey) throws AccessDeniedException {
+    public long registerAccount(AccountCredentialsEntity accountCredentialsEntity, String adminKey) throws  IllegalAccessException {
         if (!accountCredentialsEntity.getRole().equals("ROLE_USER") && !accountCredentialsEntity.getRole().equals("ROLE_ADMIN")) {
-            throw new InvalidRoleException("Given role doesn't exist.");
+            throw new InvalidRoleException("Role " + accountCredentialsEntity.getRole() + " doesn't exist.");
         }
         if (accountCredentialsEntity.getRole().equals("ROLE_ADMIN")) {
             if (adminKey == null || !adminKey.equals(this.adminKey)) {
-                throw new AccessDeniedException("Given admin key is invalid.");
+                throw new IllegalAccessException("Given admin key is invalid.");
             }
         }
         accountCredentialsEntity.setPasswordHashed(passwordEncoder.encode(accountCredentialsEntity.getPassword()));
@@ -71,11 +72,11 @@ public class AccountServiceImpl implements AccountService {
                 return jwtHandler.generateToken(phoneNumber, credentials.get().getAuthorities());
             }
         }
-        catch (InternalAuthenticationServiceException e) {
-            throw new AuthException(e.getMessage());
-        }
         catch (BadCredentialsException e) {
             throw new AuthException("Incorrect password.");
+        }
+        catch (AuthenticationException e) {
+            throw new AuthException(e.getMessage());
         }
         return "";
     }
@@ -84,7 +85,7 @@ public class AccountServiceImpl implements AccountService {
     @Transactional
     public void createUser(AccountEntity entity, long credentialsId) {
         AccountCredentialsEntity credentials = accountCredsRepo.findById(credentialsId)
-                .orElseThrow(() -> new CredentialsNotFoundException("No credentials with such id."));
+                .orElseThrow(() -> new CredentialsNotFoundException("No credentials with id " + credentialsId));
         entity.setCredentials(credentials);
         accountRepo.save(entity);
     }
@@ -93,12 +94,13 @@ public class AccountServiceImpl implements AccountService {
     @Transactional
     public void deleteUser(long id) {
         AccountEntity user = accountRepo.findById(id)
-                .orElseThrow(() -> new AccountNotFoundException("No user with such id"));
+                .orElseThrow(() -> new AccountNotFoundException("No user with id " + id));
         accountCredsRepo.deleteById(user.getCredentials().getId());
     }
 
     @Override
-    public List<AccountEntity> getAllUsers() {
-        return accountRepo.findAll();
+    public List<AccountEntity> getAllUsers(String firstName, String lastName, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return accountRepo.findAllUsersWithFilters(firstName, lastName, pageable);
     }
 }

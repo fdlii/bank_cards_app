@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @RestController
@@ -31,7 +30,7 @@ public class AccountController {
     public ResponseEntity<String> register(
             @RequestHeader("X-Admin-Key") String adminKey,
             @RequestBody AccountCredentialsDTO accountCredentialsDTO
-    ) throws AccessDeniedException {
+    ) throws IllegalAccessException {
         long id = accountService.registerAccount(accountCredentialsMapper.toEntity(accountCredentialsDTO), adminKey);
         return ResponseEntity.ok("Account with id " + id + " was successfully created!");
     }
@@ -63,8 +62,12 @@ public class AccountController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<AccountResponseDTO>> getAllUsers() {
-        return ResponseEntity.status(200).body(accountMapper.toDTOList(accountService.getAllUsers()));
+    public ResponseEntity<List<AccountResponseDTO>> getAllUsers(
+            @ModelAttribute FIO fio,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.status(200).body(
+                accountMapper.toDTOList(accountService.getAllUsers(fio.getFirstName(), fio.getLastName(), page, size)));
     }
-
 }

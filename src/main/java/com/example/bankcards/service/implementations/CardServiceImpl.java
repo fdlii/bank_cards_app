@@ -7,6 +7,8 @@ import com.example.bankcards.repository.CardBlockRequestRepository;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.service.interfaces.CardService;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -16,7 +18,6 @@ import java.util.List;
 @Service
 public class CardServiceImpl implements CardService {
     private final String BIN = "541234";
-    private int counter = 0;
 
     private final AccountRepository accountRepo;
     private final CardRepository cardRepo;
@@ -29,8 +30,9 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
-    public List<CardEntity> getAllCards() {
-        List<CardEntity> cardEntities = cardRepo.findAll();
+    public List<CardEntity> getAllCards(String firstName, String lastName, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        List<CardEntity> cardEntities = cardRepo.findAllCardsWithFilters(firstName, lastName, pageable);
         cardEntities.forEach(c -> c.setCardNumberEncrypted("**** **** **** " + c.getLastFourDigits()));
         return cardEntities;
     }
@@ -39,33 +41,32 @@ public class CardServiceImpl implements CardService {
     @Transactional
     public void createCard(CardEntity entity, long accountId) {
         AccountEntity account = accountRepo.findById(accountId)
-                .orElseThrow(() -> new AccountNotFoundException("No account with such id."));
+                .orElseThrow(() -> new AccountNotFoundException("No account with id " + accountId));
         entity.setAccount(account);
 
-        counter++;
-        String number = String.valueOf(counter);
-        String finalNumber = BIN + '0' * (10 - number.length()) + number;
-
-        entity.setCardNumberEncrypted(finalNumber);
+        entity.setCardNumberEncrypted("temp");
         entity.setStatus(CardStatus.NEW);
-        entity.setLastFourDigits(finalNumber.substring(12));
+        entity.setAccount(account);
+        CardEntity saved = cardRepo.save(entity);
 
-        account.getCards().add(entity);
+        String number = String.format("%010d", saved.getId());
+        String finalNumber = BIN + number;
 
-        cardRepo.save(entity);
+        saved.setLastFourDigits(finalNumber.substring(12));
+        saved.setCardNumberEncrypted(finalNumber);
     }
 
     @Override
     @Transactional
     public void activateCard(long id) {
-        CardEntity entity = cardRepo.findById(id).orElseThrow(() -> new CardNotFoundException("No card with such id."));
+        CardEntity entity = cardRepo.findById(id).orElseThrow(() -> new CardNotFoundException("No card with id " + id));
         entity.setStatus(CardStatus.ACTIVE);
     }
 
     @Override
     @Transactional
     public void deleteCard(long id) {
-        CardEntity entity = cardRepo.findById(id).orElseThrow(() -> new CardNotFoundException("No card with such id."));
+        CardEntity entity = cardRepo.findById(id).orElseThrow(() -> new CardNotFoundException("No card with id " + id));
         cardRepo.delete(entity);
     }
 
@@ -78,7 +79,7 @@ public class CardServiceImpl implements CardService {
     @Transactional
     public String approveBlockRequest(long id) {
         CardBlockRequestEntity entity = blockRequestRepo.findById(id)
-                .orElseThrow(() -> new BlockRequestNotFoundException("No block request with such id."));
+                .orElseThrow(() -> new BlockRequestNotFoundException("No block request with id " + id));
         entity.setStatus(BlockRequestStatus.APPROVED);
 
         CardEntity cardEntity = entity.getCard();
@@ -91,7 +92,7 @@ public class CardServiceImpl implements CardService {
     @Transactional
     public void rejectBlockRequest(long id) {
         CardBlockRequestEntity entity = blockRequestRepo.findById(id)
-                .orElseThrow(() -> new BlockRequestNotFoundException("No block request with such id."));
+                .orElseThrow(() -> new BlockRequestNotFoundException("No block request with id " + id));
         entity.setStatus(BlockRequestStatus.REJECTED);
     }
 
@@ -99,11 +100,11 @@ public class CardServiceImpl implements CardService {
 
     @Override
     @Transactional
-    public List<CardEntity> getUserCards() {
+    public List<CardEntity> getUserCards(int page, int size) {
         AccountCredentialsEntity credentials =
                 (AccountCredentialsEntity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         AccountEntity entity = accountRepo.findByCredentialsIdWithCards(credentials.getId());
-        return entity.getCards();
+        return entity.getCards().stream().skip((long) page * size).limit(size).toList();
     }
 
     @Override
@@ -114,7 +115,7 @@ public class CardServiceImpl implements CardService {
         AccountEntity entity = accountRepo.findByCredentialsIdWithCards(credentials.getId());
         CardEntity cardEntity = entity.getCards().stream()
                 .filter(c -> c.getCardNumberEncrypted().equals(number)).findFirst()
-                .orElseThrow(() -> new CardNotFoundException("No card with such number."));
+                .orElseThrow(() -> new CardNotFoundException("No card with number " + number));
         return cardEntity;
     }
 
@@ -126,7 +127,7 @@ public class CardServiceImpl implements CardService {
         AccountEntity entity = accountRepo.findByCredentialsIdWithCards(credentials.getId());
         CardEntity cardEntity = entity.getCards().stream()
                 .filter(c -> c.getCardNumberEncrypted().equals(number)).findFirst()
-                .orElseThrow(() -> new CardNotFoundException("No card with such number."));
+                .orElseThrow(() -> new CardNotFoundException("No card with number " + number));
         CardBlockRequestEntity blockRequestEntity = CardBlockRequestEntity.builder()
                 .card(cardEntity)
                 .account(entity)
