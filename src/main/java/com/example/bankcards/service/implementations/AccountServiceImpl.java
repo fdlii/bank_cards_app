@@ -98,7 +98,6 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    @Transactional
     public List<AccountEntity> getAllUsers() {
         return accountRepo.findAll();
     }

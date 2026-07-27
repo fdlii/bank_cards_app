@@ -72,7 +72,7 @@ public class CardController {
 
     @PatchMapping("/admin/request/reject/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> approveRequest(@PathVariable("id") long id) {
+    public ResponseEntity<String> rejectRequest(@PathVariable("id") long id) {
         cardService.rejectBlockRequest(id);
         return ResponseEntity.ok("Request with id " + id + " was rejected.");
     }
@@ -82,13 +82,13 @@ public class CardController {
     @GetMapping("/user")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<List<CardResponseDTO>> getUserCards() {
-        return cardMapper.toDTOList(cardService.getUserCards());
+        return ResponseEntity.ok(cardMapper.toDTOList(cardService.getUserCards()));
     }
 
     @GetMapping("/user/{number}")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<CardResponseDTO> getCardByNumber(@PathVariable("number") String number) {
-        return cardMapper.toDTO(cardService.getCardByNumber());
+        return ResponseEntity.ok(cardMapper.toDTO(cardService.getCardByNumber(number)));
     }
 
     @PostMapping("/user/{number}")

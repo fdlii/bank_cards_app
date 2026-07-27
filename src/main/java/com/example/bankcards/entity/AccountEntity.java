@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity
 @Table(name = "account")
 @NoArgsConstructor
@@ -24,4 +26,7 @@ public class AccountEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "credentials_id")
     private AccountCredentialsEntity credentials;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "account")
+    private List<CardEntity> cards;
 }
