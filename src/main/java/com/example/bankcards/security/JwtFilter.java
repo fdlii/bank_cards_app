@@ -1,6 +1,6 @@
 package com.example.bankcards.security;
 
-import com.example.bankcards.exception.AuthException;
+import com.example.bankcards.exception.account.AuthException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

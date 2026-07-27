@@ -1,7 +1,11 @@
 package com.example.bankcards.service.implementations;
 
 import com.example.bankcards.entity.*;
-import com.example.bankcards.exception.*;
+import com.example.bankcards.exception.account.AccountNotFoundException;
+import com.example.bankcards.exception.card.BlockRequestNotFoundException;
+import com.example.bankcards.exception.card.CardNotFoundException;
+import com.example.bankcards.exception.card.InsufficientFundsException;
+import com.example.bankcards.exception.card.InvalidCardStatusException;
 import com.example.bankcards.repository.AccountRepository;
 import com.example.bankcards.repository.CardBlockRequestRepository;
 import com.example.bankcards.repository.CardRepository;
@@ -9,7 +13,6 @@ import com.example.bankcards.service.interfaces.CardService;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 

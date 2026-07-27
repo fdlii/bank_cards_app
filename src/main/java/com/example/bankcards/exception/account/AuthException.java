@@ -1,4 +1,4 @@
-package com.example.bankcards.exception;
+package com.example.bankcards.exception.account;
 
 import org.springframework.security.core.AuthenticationException;
 

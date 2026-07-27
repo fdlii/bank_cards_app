@@ -2,10 +2,10 @@ package com.example.bankcards.service.implementations;
 
 import com.example.bankcards.entity.AccountCredentialsEntity;
 import com.example.bankcards.entity.AccountEntity;
-import com.example.bankcards.exception.AccountNotFoundException;
-import com.example.bankcards.exception.AuthException;
-import com.example.bankcards.exception.CredentialsNotFoundException;
-import com.example.bankcards.exception.InvalidRoleException;
+import com.example.bankcards.exception.account.AccountNotFoundException;
+import com.example.bankcards.exception.account.AuthException;
+import com.example.bankcards.exception.account.CredentialsNotFoundException;
+import com.example.bankcards.exception.account.InvalidRoleException;
 import com.example.bankcards.repository.AccountCredentialsRepository;
 import com.example.bankcards.repository.AccountRepository;
 import com.example.bankcards.service.interfaces.AccountService;
@@ -16,14 +16,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.Optional;
 

@@ -1,4 +1,4 @@
-package com.example.bankcards.exception;
+package com.example.bankcards.exception.card;
 
 public class BlockRequestNotFoundException extends RuntimeException {
     public BlockRequestNotFoundException(String message) {

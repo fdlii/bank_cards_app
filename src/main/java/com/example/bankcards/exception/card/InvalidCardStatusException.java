@@ -1,4 +1,4 @@
-package com.example.bankcards.exception;
+package com.example.bankcards.exception.card;
 
 public class InvalidCardStatusException extends RuntimeException {
     public InvalidCardStatusException(String message) {
