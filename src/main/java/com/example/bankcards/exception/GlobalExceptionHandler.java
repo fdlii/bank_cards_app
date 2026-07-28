@@ -31,7 +31,6 @@ public class GlobalExceptionHandler {
                 .forEach(err -> {
                     fieldErrors.put(err.getField(), err.getDefaultMessage());
                 });
-
         return buildErrorResponse(HttpStatus.BAD_REQUEST, fieldErrors);
     }
 

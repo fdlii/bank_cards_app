@@ -100,5 +100,10 @@ pom.xml — файл для управления зависимостями пр
             <version>1.6.3</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 </project>

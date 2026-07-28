@@ -1,5 +1,7 @@
-package com.example.bankcards.security;
+package com.example.bankcards.config;
 
+import com.example.bankcards.security.BankUserDetailsService;
+import com.example.bankcards.security.JwtFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;

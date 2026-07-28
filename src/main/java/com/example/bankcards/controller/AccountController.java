@@ -1,5 +1,6 @@
 package com.example.bankcards.controller;
 
+import com.example.bankcards.dto.FIO;
 import com.example.bankcards.dto.request.AccountCredentialsDTO;
 import com.example.bankcards.dto.request.AccountRequestDTO;
 import com.example.bankcards.dto.response.AccountResponseDTO;
@@ -7,14 +8,18 @@ import com.example.bankcards.dto.request.PhonePasswordDTO;
 import com.example.bankcards.mapper.AccountCredentialsMapper;
 import com.example.bankcards.mapper.AccountMapper;
 import com.example.bankcards.service.interfaces.AccountService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/account")
+@Validated
 public class AccountController {
     private final AccountService accountService;
     private final AccountCredentialsMapper accountCredentialsMapper;
@@ -29,7 +34,7 @@ public class AccountController {
     @PostMapping("/register")
     public ResponseEntity<String> register(
             @RequestHeader("X-Admin-Key") String adminKey,
-            @RequestBody AccountCredentialsDTO accountCredentialsDTO
+            @Valid @RequestBody AccountCredentialsDTO accountCredentialsDTO
     ) throws IllegalAccessException {
         long id = accountService.registerAccount(accountCredentialsMapper.toEntity(accountCredentialsDTO), adminKey);
         return ResponseEntity.ok("Account with id " + id + " was successfully created!");
@@ -37,7 +42,7 @@ public class AccountController {
 
     @PostMapping("/login")
     public ResponseEntity<String> login(
-            @RequestBody PhonePasswordDTO phonePasswordDTO
+            @Valid @RequestBody PhonePasswordDTO phonePasswordDTO
     )
     {
         String token = accountService.loginAccount(phonePasswordDTO.getPhoneNumber(), phonePasswordDTO.getPassword());
@@ -47,7 +52,7 @@ public class AccountController {
     @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> createUser(
-            @RequestBody AccountRequestDTO accountDTO
+            @Valid @RequestBody AccountRequestDTO accountDTO
     ) {
         accountService.createUser(accountMapper.toEntity(accountDTO), accountDTO.getCredentialsId());
         return ResponseEntity.ok("User was successfully created.");
@@ -55,7 +60,9 @@ public class AccountController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> deleteUser(@PathVariable("id") long id) {
+    public ResponseEntity<String> deleteUser(
+            @Min(value = 0, message = "User id can't be less then 0.")
+            @PathVariable("id") long id) {
         accountService.deleteUser(id);
         return ResponseEntity.ok("User and his credentials were successfully deleted.");
     }
@@ -63,9 +70,14 @@ public class AccountController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<AccountResponseDTO>> getAllUsers(
-            @ModelAttribute FIO fio,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @ModelAttribute
+            FIO fio,
+            @Min(value = 0, message = "Page can't be less then 0.")
+            @RequestParam(defaultValue = "0")
+            int page,
+            @Min(value = 1, message = "Size can't be less then 1.")
+            @RequestParam(defaultValue = "10")
+            int size
     ) {
         return ResponseEntity.status(200).body(
                 accountMapper.toDTOList(accountService.getAllUsers(fio.getFirstName(), fio.getLastName(), page, size)));

@@ -1,5 +1,6 @@
 package com.example.bankcards.security;
 
+import com.example.bankcards.config.JwtAuthenticationEntryPoint;
 import com.example.bankcards.exception.account.AuthException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;

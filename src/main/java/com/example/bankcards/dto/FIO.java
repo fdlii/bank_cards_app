@@ -1,4 +1,4 @@
-package com.example.bankcards.controller;
+package com.example.bankcards.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

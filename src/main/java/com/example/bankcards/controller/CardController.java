@@ -1,5 +1,6 @@
 package com.example.bankcards.controller;
 
+import com.example.bankcards.dto.FIO;
 import com.example.bankcards.dto.request.CardRequestDTO;
 import com.example.bankcards.dto.request.TransferMoneyDTO;
 import com.example.bankcards.dto.response.CardBlockReqDTO;
@@ -7,14 +8,19 @@ import com.example.bankcards.dto.response.CardResponseDTO;
 import com.example.bankcards.mapper.CardBlockRequestMapper;
 import com.example.bankcards.mapper.CardMapper;
 import com.example.bankcards.service.interfaces.CardService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/card")
+@Validated
 public class CardController {
     private final CardService cardService;
     private final CardMapper cardMapper;
@@ -32,7 +38,9 @@ public class CardController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<CardResponseDTO>> getAllCards(
             @ModelAttribute FIO fio,
+            @Min(value = 0, message = "Page can't be less then 0.")
             @RequestParam(defaultValue = "0") int page,
+            @Min(value = 1, message = "Size can't be less then 1.")
             @RequestParam(defaultValue = "10") int size
     ) {
         return ResponseEntity.ok().body(cardMapper.toDTOList(cardService.getAllCards(fio.getFirstName(), fio.getLastName(), page, size)));
@@ -41,7 +49,7 @@ public class CardController {
     @PostMapping("/admin")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> createCard(
-            @RequestBody CardRequestDTO cardRequestDTO
+            @Valid @RequestBody CardRequestDTO cardRequestDTO
     ) {
         cardService.createCard(cardMapper.toEntity(cardRequestDTO), cardRequestDTO.getAccountId());
         return ResponseEntity.ok("Card was successfully created.");
@@ -49,14 +57,18 @@ public class CardController {
 
     @PatchMapping("/admin/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> activateCard(@PathVariable("id") long id) {
+    public ResponseEntity<String> activateCard(
+            @Min(value = 0, message = "Card id can't be less then 0.")
+            @PathVariable("id") long id) {
         cardService.activateCard(id);
         return ResponseEntity.ok("Card with id " + id + " was successfully activated.");
     }
 
     @DeleteMapping("/admin/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> deleteCard(@PathVariable("id") long id) {
+    public ResponseEntity<String> deleteCard(
+            @Min(value = 0, message = "Card id can't be less then 0.")
+            @PathVariable("id") long id) {
         cardService.deleteCard(id);
         return ResponseEntity.ok("Card with id " + id + " was successfully deleted.");
     }
@@ -69,14 +81,18 @@ public class CardController {
 
     @PatchMapping("/admin/request/approve/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> approveRequest(@PathVariable("id") long id) {
+    public ResponseEntity<String> approveRequest(
+            @Min(value = 0, message = "Request id can't be less then 0.")
+            @PathVariable("id") long id) {
         String cardNumber = cardService.approveBlockRequest(id);
         return ResponseEntity.ok("Card with number " + cardNumber + " was successfully blocked.");
     }
 
     @PatchMapping("/admin/request/reject/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> rejectRequest(@PathVariable("id") long id) {
+    public ResponseEntity<String> rejectRequest(
+            @Min(value = 0, message = "Request id can't be less then 0.")
+            @PathVariable("id") long id) {
         cardService.rejectBlockRequest(id);
         return ResponseEntity.ok("Request with id " + id + " was rejected.");
     }
@@ -86,7 +102,9 @@ public class CardController {
     @GetMapping("/user")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<List<CardResponseDTO>> getUserCards(
+            @Min(value = 0, message = "Page can't be less then 0.")
             @RequestParam(defaultValue = "0") int page,
+            @Min(value = 1, message = "Size can't be less then 1.")
             @RequestParam(defaultValue = "10") int size
     ) {
         return ResponseEntity.ok(cardMapper.toDTOList(cardService.getUserCards(page, size)));
@@ -94,20 +112,25 @@ public class CardController {
 
     @GetMapping("/user/{number}")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<CardResponseDTO> getCardByNumber(@PathVariable("number") String number) {
+    public ResponseEntity<CardResponseDTO> getCardByNumber(
+            @NotBlank(message = "Number can't be empty.")
+            @PathVariable("number") String number) {
         return ResponseEntity.ok(cardMapper.toDTO(cardService.getCardByNumber(number)));
     }
 
     @PostMapping("/user/{number}")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<String> createBlockRequest(@PathVariable("number") String number) {
+    public ResponseEntity<String> createBlockRequest(
+            @NotBlank(message = "Number can't be empty.")
+            @PathVariable("number") String number) {
         cardService.createBlockRequest(number);
         return ResponseEntity.ok("Request was successfully created.");
     }
 
     @PatchMapping("/user/transfer")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<String> transferMoney(@RequestBody TransferMoneyDTO transferMoneyDTO) {
+    public ResponseEntity<String> transferMoney(
+            @Valid @RequestBody TransferMoneyDTO transferMoneyDTO) {
         cardService.transferMoney(transferMoneyDTO.getFrom(), transferMoneyDTO.getTo(), transferMoneyDTO.getSum());
         return ResponseEntity.ok("Funds have been successfully delivered.");
     }
