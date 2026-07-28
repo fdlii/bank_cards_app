@@ -113,7 +113,6 @@ public class CardController {
     @GetMapping("/user/{number}")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<CardResponseDTO> getCardByNumber(
-            @NotBlank(message = "Number can't be empty.")
             @PathVariable("number") String number) {
         return ResponseEntity.ok(cardMapper.toDTO(cardService.getCardByNumber(number)));
     }
@@ -121,7 +120,6 @@ public class CardController {
     @PostMapping("/user/{number}")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<String> createBlockRequest(
-            @NotBlank(message = "Number can't be empty.")
             @PathVariable("number") String number) {
         cardService.createBlockRequest(number);
         return ResponseEntity.ok("Request was successfully created.");

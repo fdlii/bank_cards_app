@@ -1,1 +1,582 @@
-# Здесь будет OpenAPI описание всех доступных эндпоинтов и моделей данных.
+openapi: 3.0.3
+info:
+  title: Bank Cards API
+  description: REST API для управления банковскими картами пользователей
+  version: "0.1"
+
+servers:
+  - url: http://localhost:8083
+
+security:
+  - BearerAuth: []
+
+paths:
+
+  /account/register:
+    post:
+      summary: Регистрация нового аккаунта (credentials)
+      security: []
+      tags: [Account]
+      parameters:
+        - name: X-Admin-Key
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Секретный ключ для регистрации администратора
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountCredentialsDTO'
+      responses:
+        '200':
+          description: Аккаунт успешно создан
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Account with id 1 was successfully created!"
+        '400':
+          description: Ошибка валидации
+        '403':
+          description: Неверный admin key
+
+  /account/login:
+    post:
+      summary: Авторизация и получение JWT токена
+      security: []
+      tags: [Account]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhonePasswordDTO'
+      responses:
+        '200':
+          description: JWT токен
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "eyJhbGciOiJIUzI1NiJ9..."
+        '401':
+          description: Неверные учётные данные
+
+  /account/create:
+    post:
+      summary: Создание бизнес-профиля пользователя (только ADMIN)
+      tags: [Account]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountRequestDTO'
+      responses:
+        '200':
+          description: Пользователь успешно создан
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "User was successfully created."
+        '400':
+          description: Ошибка валидации
+        '403':
+          description: Доступ запрещён
+
+  /account/{id}:
+    delete:
+      summary: Удаление пользователя по id (только ADMIN)
+      tags: [Account]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      responses:
+        '200':
+          description: Пользователь успешно удалён
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "User and his credentials were successfully deleted."
+        '403':
+          description: Доступ запрещён
+        '404':
+          description: Пользователь не найден
+
+  /account:
+    get:
+      summary: Получение списка всех пользователей с фильтрацией и пагинацией (только ADMIN)
+      tags: [Account]
+      parameters:
+        - name: firstName
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: lastName
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+      responses:
+        '200':
+          description: Список пользователей
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountResponseDTO'
+        '403':
+          description: Доступ запрещён
+
+  /card/admin:
+    get:
+      summary: Получение всех карт с фильтрацией по владельцу и пагинацией (только ADMIN)
+      tags: [Card - Admin]
+      parameters:
+        - name: firstName
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: lastName
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+      responses:
+        '200':
+          description: Список карт
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardResponseDTO'
+        '403':
+          description: Доступ запрещён
+
+    post:
+      summary: Создание карты для пользователя (только ADMIN)
+      tags: [Card - Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardRequestDTO'
+      responses:
+        '200':
+          description: Карта успешно создана
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Card was successfully created."
+        '400':
+          description: Ошибка валидации
+        '403':
+          description: Доступ запрещён
+
+  /card/admin/{id}:
+    patch:
+      summary: Активация карты (только ADMIN)
+      tags: [Card - Admin]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      responses:
+        '200':
+          description: Карта успешно активирована
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Card with id 1 was successfully activated."
+        '403':
+          description: Доступ запрещён
+        '404':
+          description: Карта не найдена
+
+    delete:
+      summary: Удаление карты (только ADMIN)
+      tags: [Card - Admin]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      responses:
+        '200':
+          description: Карта успешно удалена
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Card with id 1 was successfully deleted."
+        '403':
+          description: Доступ запрещён
+        '404':
+          description: Карта не найдена
+
+  /card/admin/request:
+    get:
+      summary: Получение активных запросов на блокировку карт (только ADMIN)
+      tags: [Card - Admin]
+      responses:
+        '200':
+          description: Список запросов на блокировку
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardBlockReqDTO'
+        '403':
+          description: Доступ запрещён
+
+  /card/admin/request/approve/{id}:
+    patch:
+      summary: Одобрение запроса на блокировку карты (только ADMIN)
+      tags: [Card - Admin]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      responses:
+        '200':
+          description: Карта заблокирована
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Card with number **** **** **** 1234 was successfully blocked."
+        '403':
+          description: Доступ запрещён
+        '404':
+          description: Запрос не найден
+
+  /card/admin/request/reject/{id}:
+    patch:
+      summary: Отклонение запроса на блокировку карты (только ADMIN)
+      tags: [Card - Admin]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      responses:
+        '200':
+          description: Запрос отклонён
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Request with id 1 was rejected."
+        '403':
+          description: Доступ запрещён
+        '404':
+          description: Запрос не найден
+
+  /card/user:
+    get:
+      summary: Получение карт текущего пользователя с пагинацией (только USER)
+      tags: [Card - User]
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+      responses:
+        '200':
+          description: Список карт пользователя
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardResponseDTO'
+        '403':
+          description: Доступ запрещён
+
+  /card/user/{number}:
+    get:
+      summary: Получение карты по номеру (только USER)
+      tags: [Card - User]
+      parameters:
+        - name: number
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Номер карты
+      responses:
+        '200':
+          description: Данные карты
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardResponseDTO'
+        '403':
+          description: Доступ запрещён
+        '404':
+          description: Карта не найдена
+
+    post:
+      summary: Создание запроса на блокировку карты (только USER)
+      tags: [Card - User]
+      parameters:
+        - name: number
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Номер карты
+      responses:
+        '200':
+          description: Запрос успешно создан
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Request was successfully created."
+        '403':
+          description: Доступ запрещён
+        '404':
+          description: Карта не найдена
+
+  /card/user/transfer:
+    patch:
+      summary: Перевод средств между картами пользователя (только USER)
+      tags: [Card - User]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferMoneyDTO'
+      responses:
+        '200':
+          description: Перевод выполнен успешно
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Funds have been successfully delivered."
+        '400':
+          description: Недостаточно средств или ошибка валидации
+        '403':
+          description: Доступ запрещён
+        '404':
+          description: Карта не найдена
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    AccountCredentialsDTO:
+      type: object
+      required: [phoneNumber, password, role]
+      properties:
+        phoneNumber:
+          type: string
+          pattern: '^\+?[0-9]{10,15}$'
+          example: "+79991234567"
+        password:
+          type: string
+          minLength: 8
+          example: "securepassword"
+        role:
+          type: string
+          enum: [ROLE_ADMIN, ROLE_USER]
+          example: "ROLE_USER"
+
+    PhonePasswordDTO:
+      type: object
+      required: [phoneNumber, password]
+      properties:
+        phoneNumber:
+          type: string
+          pattern: '^\+?[0-9]{10,15}$'
+          example: "+79991234567"
+        password:
+          type: string
+          minLength: 8
+          example: "securepassword"
+
+    AccountRequestDTO:
+      type: object
+      required: [firstName, lastName, credentialsId]
+      properties:
+        firstName:
+          type: string
+          example: "Иван"
+        lastName:
+          type: string
+          example: "Иванов"
+        credentialsId:
+          type: integer
+          format: int64
+          minimum: 0
+          example: 1
+
+    AccountResponseDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        firstName:
+          type: string
+          example: "Иван"
+        lastName:
+          type: string
+          example: "Иванов"
+
+    CardRequestDTO:
+      type: object
+      required: [accountId, balance, validityPeriod]
+      properties:
+        accountId:
+          type: integer
+          format: int64
+          minimum: 0
+          example: 1
+        balance:
+          type: number
+          format: double
+          minimum: 0
+          example: 1000.00
+        validityPeriod:
+          type: string
+          pattern: '^(0[1-9]|1[0-2])/[0-9]{4}$'
+          example: "12/2030"
+
+    CardResponseDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        cardNumber:
+          type: string
+          example: "**** **** **** 1234"
+        balance:
+          type: number
+          format: double
+          example: 1000.00
+        status:
+          type: string
+          enum: [NEW, ACTIVE, BLOCKED, EXPIRED]
+          example: "ACTIVE"
+        validityPeriod:
+          type: string
+          example: "12/2030"
+
+    CardBlockReqDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        cardId:
+          type: integer
+          format: int64
+          example: 5
+        accountId:
+          type: integer
+          format: int64
+          example: 2
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-07-25T12:00:00Z"
+
+    TransferMoneyDTO:
+      type: object
+      required: [from, to, sum]
+      properties:
+        from:
+          type: string
+          description: Номер карты отправителя
+          example: "1234567890123456"
+        to:
+          type: string
+          description: Номер карты получателя
+          example: "6543210987654321"
+        sum:
+          type: number
+          format: double
+          minimum: 10
+          example: 500.00

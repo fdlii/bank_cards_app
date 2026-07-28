@@ -38,7 +38,8 @@ public class SecurityConfig {
                     .sessionManagement(session ->
                             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(request ->
-                            request.requestMatchers("/account/register", "/account/login").permitAll()
+                            request.requestMatchers("/account/register", "/account/login",
+                                            "/swagger-ui/**", "/v3/api-docs/**", "/openapi.yaml").permitAll()
                                     .anyRequest().authenticated())
                     .exceptionHandling(ex -> ex
                         .accessDeniedHandler(accessDeniedHandler)
