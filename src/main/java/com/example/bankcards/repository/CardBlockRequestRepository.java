@@ -9,6 +9,6 @@ import java.util.List;
 
 @Repository
 public interface CardBlockRequestRepository extends JpaRepository<CardBlockRequestEntity, Long> {
-    @Query(value = "SELECT c FROM CardBlockRequestEntity c WHERE c.status == BlockRequestStatus.PENDING")
+    @Query("SELECT r FROM CardBlockRequestEntity r JOIN FETCH r.card JOIN FETCH r.account WHERE r.status = 'PENDING'")
     List<CardBlockRequestEntity> getActiveBlockRequests();
 }

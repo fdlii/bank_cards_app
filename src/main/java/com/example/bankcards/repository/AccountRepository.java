@@ -15,8 +15,8 @@ public interface AccountRepository extends JpaRepository<AccountEntity, Long> {
     AccountEntity findByCredentialsIdWithCards(@Param("credentialsId") long credentialsId);
 
     @Query("SELECT a FROM AccountEntity a WHERE " +
-            "(:firstName IS NULL OR LOWER(a.firstName) = LOWER(:firstName)) AND " +
-            "(:lastName IS NULL OR LOWER(a.lastName) = LOWER(:lastName))")
+            "(LOWER(a.firstName) = LOWER(:firstName) OR :firstName IS NULL) AND " +
+            "(LOWER(a.lastName) = LOWER(:lastName) OR :lastName IS NULL)")
     List<AccountEntity> findAllUsersWithFilters(
             @Param("firstName") String firstName,
             @Param("lastName") String lastName,

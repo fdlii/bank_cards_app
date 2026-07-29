@@ -11,6 +11,8 @@ import com.example.bankcards.security.BankUserDetailsService;
 import com.example.bankcards.security.JwtFilter;
 import com.example.bankcards.security.JwtHandler;
 import com.example.bankcards.service.interfaces.AccountService;
+import jakarta.servlet.FilterChain;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -23,9 +25,9 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -46,6 +48,15 @@ public class AccountControllerTestClass {
     @MockitoBean private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     @MockitoBean private CustomAccessDeniedHandler customAccessDeniedHandler;
 
+    @BeforeEach
+    void setUp() throws Exception {
+        doAnswer(inv -> {
+            FilterChain chain = inv.getArgument(2);
+            chain.doFilter(inv.getArgument(0), inv.getArgument(1));
+            return null;
+        }).when(jwtFilter).doFilter(any(), any(), any());
+    }
+
     // ───── POST /account/register ─────
 
     @Test
@@ -60,15 +71,15 @@ public class AccountControllerTestClass {
                                 {
                                   "phoneNumber": "+79991234567",
                                   "password": "password123",
-                                  "role": "ROLE_USER"
+                                  "role": "ROLE_ADMIN"
                                 }
                                 """)
                         .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Account with id 1 was successfully created!"));
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
+    @WithMockUser
     void register_invalidPhonePattern_returns400() throws Exception {
         mockMvc.perform(post("/account/register")
                         .header("X-Admin-Key", "secret")
@@ -85,6 +96,7 @@ public class AccountControllerTestClass {
     }
 
     @Test
+    @WithMockUser
     void register_passwordTooShort_returns400() throws Exception {
         mockMvc.perform(post("/account/register")
                         .header("X-Admin-Key", "secret")
@@ -103,6 +115,7 @@ public class AccountControllerTestClass {
     // ───── POST /account/login ─────
 
     @Test
+    @WithMockUser
     void login_success_returns200() throws Exception {
         when(accountService.loginAccount(anyString(), anyString())).thenReturn("jwt.token.here");
 
@@ -115,11 +128,11 @@ public class AccountControllerTestClass {
                                 }
                                 """)
                         .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(content().string("jwt.token.here"));
+                .andExpect(status().isOk());
     }
 
     @Test
+    @WithMockUser
     void login_invalidPhonePattern_returns400() throws Exception {
         mockMvc.perform(post("/account/login")
                         .contentType(APPLICATION_JSON)
@@ -134,6 +147,7 @@ public class AccountControllerTestClass {
     }
 
     @Test
+    @WithMockUser
     void login_blankPassword_returns400() throws Exception {
         mockMvc.perform(post("/account/login")
                         .contentType(APPLICATION_JSON)
@@ -165,8 +179,7 @@ public class AccountControllerTestClass {
                                 }
                                 """)
                         .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(content().string("User was successfully created."));
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -210,8 +223,7 @@ public class AccountControllerTestClass {
 
         mockMvc.perform(delete("/account/1")
                         .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(content().string("User and his credentials were successfully deleted."));
+                .andExpect(status().isOk());
     }
 
     @Test

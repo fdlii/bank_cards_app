@@ -56,6 +56,7 @@ public class CardServiceImpl implements CardService {
         entity.setCardNumberEncrypted("temp");
         entity.setStatus(CardStatus.NEW);
         entity.setAccount(account);
+        entity.setLastFourDigits("temp");
         CardEntity saved = cardRepo.save(entity);
 
         String number = String.format("%010d", saved.getId());

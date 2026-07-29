@@ -5,6 +5,7 @@ import com.example.bankcards.dto.request.AccountCredentialsDTO;
 import com.example.bankcards.dto.request.AccountRequestDTO;
 import com.example.bankcards.dto.response.AccountResponseDTO;
 import com.example.bankcards.dto.request.PhonePasswordDTO;
+import com.example.bankcards.dto.response.MessageResponse;
 import com.example.bankcards.mapper.AccountCredentialsMapper;
 import com.example.bankcards.mapper.AccountMapper;
 import com.example.bankcards.service.interfaces.AccountService;
@@ -32,39 +33,39 @@ public class AccountController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(
-            @RequestHeader("X-Admin-Key") String adminKey,
+    public ResponseEntity<MessageResponse> register(
+            @RequestHeader(value = "X-Admin-Key", required = false) String adminKey,
             @Valid @RequestBody AccountCredentialsDTO accountCredentialsDTO
     ) throws IllegalAccessException {
         long id = accountService.registerAccount(accountCredentialsMapper.toEntity(accountCredentialsDTO), adminKey);
-        return ResponseEntity.ok("Account with id " + id + " was successfully created!");
+        return ResponseEntity.ok(new MessageResponse("Account with id " + id + " was successfully created!"));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(
+    public ResponseEntity<MessageResponse> login(
             @Valid @RequestBody PhonePasswordDTO phonePasswordDTO
     )
     {
         String token = accountService.loginAccount(phonePasswordDTO.getPhoneNumber(), phonePasswordDTO.getPassword());
-        return ResponseEntity.ok(token);
+        return ResponseEntity.ok(new MessageResponse(token));
     }
 
     @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> createUser(
+    public ResponseEntity<MessageResponse> createUser(
             @Valid @RequestBody AccountRequestDTO accountDTO
     ) {
         accountService.createUser(accountMapper.toEntity(accountDTO), accountDTO.getCredentialsId());
-        return ResponseEntity.ok("User was successfully created.");
+        return ResponseEntity.ok(new MessageResponse("User was successfully created."));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> deleteUser(
+    public ResponseEntity<MessageResponse> deleteUser(
             @Min(value = 0, message = "User id can't be less then 0.")
             @PathVariable("id") long id) {
         accountService.deleteUser(id);
-        return ResponseEntity.ok("User and his credentials were successfully deleted.");
+        return ResponseEntity.ok(new MessageResponse("User and his credentials were successfully deleted."));
     }
 
     @GetMapping

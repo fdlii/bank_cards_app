@@ -20,10 +20,10 @@ paths:
       parameters:
         - name: X-Admin-Key
           in: header
-          required: true
+          required: false
           schema:
             type: string
-          description: Секретный ключ для регистрации администратора
+          description: Секретный ключ администратора
       requestBody:
         required: true
         content:
